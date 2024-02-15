@@ -1,4 +1,5 @@
-#include "arp/mac_address.h"
+#include "arp/arp_mac.h"
+#include "mac/get_mac.h"
 
 #include <arpa/inet.h> // inet_addr()
 #include <stdio.h>
@@ -70,5 +71,7 @@ int main(int argc, const char **argv) {
     }
     const char *ifname = argv[1];
     const char *ip = argv[2];
-    return test_arping(ifname, ip);
+    test_arping(ifname, ip);
+
+    get_MAC(ip,"12345");
 }

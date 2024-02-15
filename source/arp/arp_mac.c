@@ -1,4 +1,4 @@
-#include "arp/mac_address.h"
+#include "arp/arp_mac.h"
 
 #include <sys/socket.h>
 #include <sys/ioctl.h>

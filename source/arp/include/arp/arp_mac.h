@@ -2,8 +2,8 @@
 Ref: https://stackoverflow.com/questions/16710040/arp-request-and-reply-using-c-socket-programming
 */
 
-#ifndef MAC_ADDRESS_H_
-#define MAC_ADDRESS_H_
+#ifndef ARP_ARP_MAC_H_
+#define ARP_ARP_MAC_H_
 
 #include <stdint.h>
 
