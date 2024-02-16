@@ -1,66 +1,15 @@
-#include "arp/arp_mac.h"
-#include "mac/get_mac.h"
-
-#include <arpa/inet.h> // inet_addr()
 #include <stdio.h>
-#include <unistd.h>
 
-#define MAC_LENGTH 6
+#include "arp_lib_test.h"
 
-#define debug(x...) { printf(x);printf("\n"); }
-#define info(x...) { printf(x);printf("\n"); }
-#define warn(x...) { printf(x);printf("\n"); }
-#define err(x...) { printf(x);printf("\n"); }
+#include "mac/get_mac.h"
+int test_mac_lib(const char *ip)
+{
+    get_MAC(ip,"12346");
+}    
 
+#include "arp_request_test.h"
 
-/*
- *
- * Sample code that sends an ARP who-has request on
- * interface <ifname> to IPv4 address <ip>.
- * Returns 0 on success.
- */
-int test_arping(const char *ifname, const char *ip) {
-    int ret = -1;
-    uint32_t dst = inet_addr(ip);
-    if (dst == 0 || dst == 0xffffffff) {
-        printf("Invalid source IP\n");
-        return 1;
-    }
-
-    uint32_t src;
-    int ifindex;
-    char mac[MAC_LENGTH];
-    if (get_if_info(ifname, &src, mac, &ifindex)) {
-        err("get_if_info failed, interface %s not found or no IP set?", ifname);
-        goto out;
-    }
-    int arp_fd;
-    if (bind_arp(ifindex, &arp_fd)) {
-        err("Failed to bind_arp()");
-        goto out;
-    }
-
-    if (send_arp(arp_fd, ifindex, (const unsigned char*)mac, src, dst)) {
-        err("Failed to send_arp");
-        goto out;
-    }
-
-    while(1) {
-        int r = read_arp(arp_fd);
-        if (r == 0) {
-            info("Got reply, break out");
-            break;
-        }
-    }
-
-    ret = 0;
-out:
-    if (arp_fd) {
-        close(arp_fd);
-        arp_fd = 0;
-    }
-    return ret;
-}
 
 
 int main(int argc, const char **argv) {
@@ -71,7 +20,27 @@ int main(int argc, const char **argv) {
     }
     const char *ifname = argv[1];
     const char *ip = argv[2];
-    test_arping(ifname, ip);
+    test_arp_lib(ifname, ip);
 
-    get_MAC(ip,"12345");
+    char buffer0[1024];        
+    { 
+        const interface_t *list = query_adapters_ipv6(buffer0,1024);
+        for (const interface_t *i = list; i->adapter ; ++i) {
+            printf("Adapter(ipv6): %s => IP: %s\n",i->adapter,i->ip);
+        }
+    }
+
+    const interface_t *list = query_adapters_ipv4(buffer0,1024);
+    for (const interface_t *i = list; i->adapter ; ++i) {
+        char buffer1[24];
+        char buffer2[24];
+
+        MacAddr mac=arp_request(ip,i);
+
+        printf("Adapter(ipv4): %s => IP: %s, Mac=%s => arp(%s)=>Mac:%s\n",i->adapter,i->ip,MacAddr(*i->mac).toStr(buffer1,24),ip,mac.toStr(buffer2,24));
+        
+    }
+
+    test_mac_lib(ip);
+
 }
